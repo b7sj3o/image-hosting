@@ -3,6 +3,7 @@ import cgi
 import uuid
 from http.server import HTTPServer
 
+from backend.utils.validators import validate_query_params
 from logger import logger
 from database import ImageRepository
 from config import settings
@@ -24,16 +25,18 @@ class ImageAPIServer(BaseHandler):
 
         
     def get_images(self):
-        params = get_query_params(self.path)
-        
-        # FIXME - помилка якщо параметри не передані
-        images = self.repo.list(
-            page=int(params.get('page')) if params.get('page').isdigit() else 1,
-            limit=int(params.get('limit')) if params.get('limit').isdigit() else 10,
-            direction=params.get('direction', "desc"),
-        )
-        self._send_json(200, images)
+        # params = get_query_params(self.path)
 
+        query_params=validate_query_params(self.path)
+        if  query_params:
+            images = self.repo.list(
+                page=query_params['page'],
+                limit=query_params['limit'],
+                direction=query_params['direction'],
+        )
+            self._send_json(200, images)
+        else:
+            self._send_error(400, "Bad Request")
 
     def get_image(self):
         filename = self.path.split("?")[0].split("/")[-1]
