@@ -52,6 +52,7 @@ class ImageAPIServer(BaseHandler):
         image = self.repo.get_by_filename(filename)
         
         if image is None:
+            logger.error(f"Image '{filename}' not found")
             self._send_error(404, "Not Found")
             return
             
